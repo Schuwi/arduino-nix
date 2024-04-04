@@ -28,10 +28,12 @@ with builtins; rec {
       lib.findFirst ({host, ...}: (match "i[3456]86-apple-darwin.*" host) != null) null systems
     else if system == "aarch64-linux" then
       # tools.go uses regexp.MatchString which will also return true for substring matches, so we add a .* to the regex
-      lib.findFirst ({host, ...}: (match "(aarch64|arm64)-linux-gnu.*" host) != null) null systems
+      alt (lib.findFirst ({host, ...}: (match "(aarch64|arm64)-linux-gnu.*" host) != null) null systems) (selectSystem "armv8-linux" systems)
     else if system == "x86_64-linux" then
       # also add a .* to the regex here though it is not necessary in the current dataset (March 2024)
       lib.findFirst ({host, ...}: (match "x86_64-.*linux-gnu.*" host) != null) null systems
+    else if (match "armv[678].*-linux" system) != null then
+      lib.findFirst ({host, ...}: (match "arm.*-linux-gnueabihf" host) != null) null systems
     else null;
   convertHash = hash: let
     m = (match "(SHA-256|SHA-1|MD5):(.*)" hash);
